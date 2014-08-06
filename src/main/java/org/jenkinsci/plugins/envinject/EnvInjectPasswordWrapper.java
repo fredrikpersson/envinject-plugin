@@ -11,6 +11,8 @@ import hudson.model.BuildListener;
 import hudson.model.Run;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
+import hudson.util.FormValidation;
+import hudson.util.Secret;
 import hudson.util.StreamTaskListener;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -18,11 +20,17 @@ import org.jenkinsci.lib.envinject.EnvInjectException;
 import org.jenkinsci.lib.envinject.EnvInjectLogger;
 import org.jenkinsci.plugins.envinject.service.EnvInjectGlobalPasswordRetriever;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -227,6 +235,15 @@ public class EnvInjectPasswordWrapper extends BuildWrapper {
             passwordWrapper.setPasswordEntries(passwordEntries.toArray(new EnvInjectPasswordEntry[passwordEntries.size()]));
 
             return passwordWrapper;
+        }
+
+        public FormValidation doCheckPassword(@QueryParameter String value) {
+            if (value == null || value.isEmpty()
+                    || value.equals(Secret.fromString(null).getEncryptedValue())) {
+                return FormValidation.error("You must enter the password before saving");
+            }
+            return FormValidation.ok();
+
         }
     }
 
